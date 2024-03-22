@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, render_template, request
+from twilio.twiml.voice_response import VoiceResponse
 app = Flask(__name__)
 
 @app.route('/')
@@ -25,3 +26,16 @@ def get_data():
 
 def giannis_link(): 
     return "https://en.wikipedia.org/wiki/Giannis_Antetokounmpo"
+
+@app.route("/callRouter", methods=["POST"])
+def handle_call():
+    #print(request.form)
+    print(f"call recieved from {request.form.get("From")}")
+    from_number = request.form.get("From")
+    
+    #to_number = call_routing_logic(from_number)
+    response = VoiceResponse()
+    response.say("Hello, you made it this far, well done!")
+    #response.hangup()
+    response.dial("513-218-2332", caller_id=from_number)
+    return str(response)
