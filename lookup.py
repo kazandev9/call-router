@@ -36,7 +36,7 @@ class lookup:
         results = {"first": None, "second": None, "third": None, "fourth": None, "fifth": None}
         for key in self.formats:
             #print(self.formats[key])
-            lookup_result = get_id_from_number(self.formats[key])
+            lookup_result = get_props_from_number(self.formats[key])
             #print(lookup_result)
             if lookup_result not in results.values():
                 results[key] = lookup_result
