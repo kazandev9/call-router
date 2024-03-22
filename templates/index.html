@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+ <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ title }}</title>
+    <style>
+        
+        h1, a {
+          color: #32cd32;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        p {
+          color: #00ff00;
+        }
+    
+        body {
+          background-color: black;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+      </style>
+
+  </head>
+
+
+  <body>
+
+    <h1>{{ message }}</h1>
+    <div class="container">
+        <a href="/data" target="_blank">View sample json data</a>
+        <a href={{ link }} target="_blank">Read about Giannis</a>
+    </div>
+    <p>{{ subheading }}</p>
+    
+  </body>
+
+</html>
