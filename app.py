@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, render_template, request
 from twilio.twiml.voice_response import VoiceResponse
+from hubspot_contacts import get_props_from_number
 app = Flask(__name__)
+
 
 @app.route('/')
 def root_page():
@@ -39,3 +41,8 @@ def handle_call():
     #response.hangup()
     response.dial("513-218-2332", caller_id=from_number)
     return str(response)
+
+@app.route("/test-hubspot-lookup")
+def hubspot_lookup_test():
+    ret = get_props_from_number("+14146072404")
+    return jsonify(ret)
