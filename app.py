@@ -30,7 +30,7 @@ def giannis_link():
 @app.route("/callRouter", methods=["POST"])
 def handle_call():
     #print(request.form)
-    print(f"call recieved from {request.form.get("From")}")
+    print(f"call recieved from {request.form.get('From')}")
     from_number = request.form.get("From")
     
     #to_number = call_routing_logic(from_number)
