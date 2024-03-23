@@ -6,9 +6,6 @@ import time
 app = Flask(__name__)
 
 
-
-
-
 @app.route('/')
 def root_page():
 	# Sample data to pass to the template
@@ -54,15 +51,18 @@ def call_routing_logic(from_number):
         return "414-316-3555"
     elif 'active' in lead_status:
         print("contact found with active case")
-        if case_type == "Chapter 13 Bankruptcy":
+        if "13" in case_type:
             print("active case found with chapter 13 Bankruptcy")
             return "414-395-4525"
-        elif case_type == "Chapter 7 Bankruptcy":
+        elif "7" in case_type:
             print("active case found with chapter 7 Bankruptcy")
             return "414-395-4513"
-        elif case_type == "Chapter 128":
+        elif "128" in case_type:
             print("active case found with chapter 128 Bankruptcy")
             return "414-395-4511"
+        else:
+            print("active case found with conflicting case type (this should be rare)")
+            return "414-395-4513"
     elif 'bad timing' in lead_status or 'no hire' in lead_status:
         print('contact found with no hire or rehired - no hire')
         return "414-567-3205"
@@ -78,12 +78,15 @@ def handle_call():
     #print(request.form)
     print(f"call recieved from {request.form.get('From')}")
     from_number = request.form.get("From")
-    
-    #to_number = call_routing_logic(from_number)
+    try:
+        to_number = call_routing_logic(from_number)
+    except Exception as e:
+        print(f"Error occurred during call routing logic function: {e}")
+        to_number = "414-336-7569"
     response = VoiceResponse()
-    response.say("Hello, you made it this far, well done!")
+    #response.say("Hello, you made it this far, well done!")
     #response.hangup()
-    response.dial("513-218-2332", caller_id=from_number)
+    response.dial(to_number, caller_id=from_number)
     return str(response)
 
 @app.route("/test-hubspot-lookup")
@@ -102,3 +105,12 @@ def test_hook():
     end = time.time()
     print(f"operations completed in {end - start} seconds")
     return "", 200
+
+@app.route("/backup-call-handler", methods=["POST"])
+def backup_handler():
+    print(f"Primary handler failed for call from number: {request.form.get('From')}, forwarding call to default number")
+    from_number = request.form.get("From")
+    response = VoiceResponse()
+    response.dial("414-336-7569", caller_id=from_number)
+    return str(response)
+    
