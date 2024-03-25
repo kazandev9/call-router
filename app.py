@@ -37,13 +37,13 @@ def call_routing_logic(from_number):
         print(lookup_results)
     except Exception as e:
         print(f'error searching for {from_number}, returning default value')
-        return "414-336-7659"
+        return "414-336-7569"
     if type(lookup_results) != dict:
         print(f'contact not found or multiple contacts found for number {from_number}, returning default value')
-        return "414-336-7659"
+        return "414-336-7569"
     if lookup_results["hs_lead_status"] == None:
         print("no lead status found, returning default value")
-        return "414-336-7659"
+        return "414-336-7569"
     lead_status = lookup_results["hs_lead_status"].lower()
     case_type = lookup_results["case_type"]
     if 'future pay' in lead_status or 'at consult' in lead_status or 'after consult' in lead_status:
@@ -86,6 +86,7 @@ def handle_call():
     response = VoiceResponse()
     #response.say("Hello, you made it this far, well done!")
     #response.hangup()
+    print(f"forwarding call to {to_number}")
     response.dial(to_number, caller_id=from_number)
     return str(response)
 
