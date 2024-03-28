@@ -10,22 +10,6 @@ app = Flask(__name__)
 
 default_number = "414-336-7569"
 
-def update_db(log_message):
-    endpoint_url = "https://express-hello-world-4sgw.onrender.com/callRouterdb"  # Replace with your endpoint URL
-    now = datetime.datetime.now()
-    formatted_time = datetime.datetime.now(timezone.utc).astimezone(timezone(offset=-timedelta(hours=5))).strftime("%-I:%M:%S %p")
-    print(formatted_time)
-    time_stamp = f"{formatted_time}"
-    data = {"message": f"{time_stamp} {log_message}"}  # Adjust the log message as needed
-    response = requests.post(endpoint_url, json=data)
-    if response.status_code == 200:
-        print("Log message added successfully!")
-    else:
-        print("Error adding log message. Status code:", response.status_code)
-        print("Response content:", response.text)
-
-
-
 @app.route('/')
 def root_page():
 	# Sample data to pass to the template
@@ -54,7 +38,7 @@ def giannis_link():
 
 def update_db(log):
     endpoint_url = "https://express-hello-world-4sgw.onrender.com/callRouter/logCall"  # Replace with your endpoint URL
-    formatted_time = datetime.datetime.now().strftime("%-I:%M:%S %p")
+    formatted_time = datetime.now(timezone.utc).astimezone(timezone(offset=-timedelta(hours=5))).strftime("%-I:%M:%S %p")
     
     data = {"message": f"{formatted_time}: Call recieved from {log['from_number']} and forwarded to {log['forwarded_number']} with Hubspot results: {log['lookup_results']}"}  # Adjust the log message as needed
 
