@@ -3,7 +3,27 @@ from twilio.twiml.voice_response import VoiceResponse
 from hubspot_contacts import get_props_from_number
 from lookup import lookup
 import time
+import requests
+import datetime
+
 app = Flask(__name__)
+
+default_number = "414-336-7569"
+
+def update_db(log_message):
+    endpoint_url = "https://express-hello-world-4sgw.onrender.com/callRouterdb"  # Replace with your endpoint URL
+    now = datetime.datetime.now()
+    formatted_time = now.strftime("%-I:%M:%S %p")  
+    print(formatted_time)
+    time_stamp = f"{formatted_time}"
+    data = {"message": f"{time_stamp} {log_message}"}  # Adjust the log message as needed
+    response = requests.post(endpoint_url, json=data)
+    if response.status_code == 200:
+        print("Log message added successfully!")
+    else:
+        print("Error adding log message. Status code:", response.status_code)
+        print("Response content:", response.text)
+
 
 
 @app.route('/')
@@ -31,21 +51,26 @@ def get_data():
 def giannis_link(): 
     return "https://en.wikipedia.org/wiki/Giannis_Antetokounmpo"
 
-def call_routing_logic(from_number):
+def call_routing_logic(from_number, log):
     try:
         lookup_results = lookup(from_number).get_right_contact()
         print(lookup_results)
     except Exception as e:
         print(f'error searching for {from_number}, returning default value')
-        return "414-336-7569"
+        log['lookup_results'] = "Error searching for contact"
+        return default_number
     if type(lookup_results) != dict:
         print(f'contact not found or multiple contacts found for number {from_number}, returning default value')
-        return "414-336-7569"
+        #print(f'error searching for {from_number}, returning default value')
+        log['lookup_results'] = "Contact not found or multiple contacts found"
+        return default_number
     if lookup_results["hs_lead_status"] == None:
         print("no lead status found, returning default value")
-        return "414-336-7569"
+        log['lookup_results'] = f"Contact found with name: {lookup_results['firstname']} {lookup_results['lastname']} and no lead status"
+        return default_number
     lead_status = lookup_results["hs_lead_status"].lower()
     case_type = lookup_results["case_type"]
+    log['lookup_results'] = f"Contact found with name: {lookup_results['firstname']} {lookup_results['lastname']}, lead status: {lead_status}, case type: {case_type}"
     if 'future pay' in lead_status or 'at consult' in lead_status or 'after consult' in lead_status:
         print(f'contact found with lead status: {lead_status}')
         return "414-316-3555"
@@ -70,24 +95,32 @@ def call_routing_logic(from_number):
         print('immigration contact found')
         return "414-567-3209"
 
-    return "414-336-7569"
+    return default_number
 
 
 @app.route("/callRouter", methods=["POST"])
 def handle_call():
     #print(request.form)
     print(f"call recieved from {request.form.get('From')}")
+    
     from_number = request.form.get("From")
+    log = {
+        "from_number": from_number,
+        "lookup_results": "",
+        "forwarded_number": ""
+    }
     try:
-        to_number = call_routing_logic(from_number)
+        to_number = call_routing_logic(from_number, log)
     except Exception as e:
         print(f"Error occurred during call routing logic function: {e}")
-        to_number = "414-336-7569"
+        to_number = default_number
     response = VoiceResponse()
     #response.say("Hello, you made it this far, well done!")
     #response.hangup()
     print(f"forwarding call to {to_number}")
     response.dial(to_number, caller_id=from_number)
+    log["forwarded_number"] = to_number
+    print(f"log: \n {log}")
     return str(response)
 
 @app.route("/test-hubspot-lookup")
@@ -107,11 +140,5 @@ def test_hook():
     print(f"operations completed in {end - start} seconds")
     return "", 200
 
-@app.route("/backup-call-handler", methods=["POST"])
-def backup_handler():
-    print(f"Primary handler failed for call from number: {request.form.get('From')}, forwarding call to default number")
-    from_number = request.form.get("From")
-    response = VoiceResponse()
-    response.dial("414-336-7569", caller_id=from_number)
-    return str(response)
+
     
