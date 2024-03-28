@@ -51,6 +51,22 @@ def get_data():
 def giannis_link(): 
     return "https://en.wikipedia.org/wiki/Giannis_Antetokounmpo"
 
+
+def update_db(log):
+    endpoint_url = "https://express-hello-world-4sgw.onrender.com/callRouter/getLogs"  # Replace with your endpoint URL
+    formatted_time = datetime.datetime.now().strftime("%-I:%M:%S %p")  
+    
+    
+    data = {"message": f"{formatted_time}: Call recieved from {log['from_number']} and forwarded to {log['forwarded_number']} with Hubspot results: {log['lookup_results']}"}  # Adjust the log message as needed
+
+    response = requests.post(endpoint_url, json=data)
+
+    if response.status_code == 200:
+        print("Log message added successfully!")
+    else:
+        print("Error adding log message. Status code:", response.status_code)
+        print("Response content:", response.text)
+
 def call_routing_logic(from_number, log):
     try:
         lookup_results = lookup(from_number).get_right_contact()
@@ -62,15 +78,15 @@ def call_routing_logic(from_number, log):
     if type(lookup_results) != dict:
         print(f'contact not found or multiple contacts found for number {from_number}, returning default value')
         #print(f'error searching for {from_number}, returning default value')
-        log['lookup_results'] = "Contact not found or multiple contacts found"
+        log['lookup_results'] = "Not found or multiple contacts found"
         return default_number
     if lookup_results["hs_lead_status"] == None:
         print("no lead status found, returning default value")
-        log['lookup_results'] = f"Contact found with name: {lookup_results['firstname']} {lookup_results['lastname']} and no lead status"
+        log['lookup_results'] = f"Name: {lookup_results['firstname']} {lookup_results['lastname']}, no lead status"
         return default_number
     lead_status = lookup_results["hs_lead_status"].lower()
     case_type = lookup_results["case_type"]
-    log['lookup_results'] = f"Contact found with name: {lookup_results['firstname']} {lookup_results['lastname']}, lead status: {lead_status}, case type: {case_type}"
+    log['lookup_results'] = f"Name: {lookup_results['firstname']} {lookup_results['lastname']}, lead status: {lead_status}, case type: {case_type}"
     if 'future pay' in lead_status or 'at consult' in lead_status or 'after consult' in lead_status:
         print(f'contact found with lead status: {lead_status}')
         return "414-316-3555"
@@ -121,6 +137,7 @@ def handle_call():
     response.dial(to_number, caller_id=from_number)
     log["forwarded_number"] = to_number
     print(f"log: \n {log}")
+    update_db(log)
     return str(response)
 
 @app.route("/test-hubspot-lookup")
