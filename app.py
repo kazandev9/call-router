@@ -4,7 +4,7 @@ from hubspot_contacts import get_props_from_number
 from lookup import lookup
 import time
 import requests
-import datetime
+from datetime import datetime, timezone, timedelta
 
 app = Flask(__name__)
 
@@ -13,7 +13,7 @@ default_number = "414-336-7569"
 def update_db(log_message):
     endpoint_url = "https://express-hello-world-4sgw.onrender.com/callRouterdb"  # Replace with your endpoint URL
     now = datetime.datetime.now()
-    formatted_time = now.strftime("%-I:%M:%S %p")  
+    formatted_time = datetime.datetime.now(timezone.utc).astimezone(timezone(offset=-timedelta(hours=5))).strftime("%-I:%M:%S %p")
     print(formatted_time)
     time_stamp = f"{formatted_time}"
     data = {"message": f"{time_stamp} {log_message}"}  # Adjust the log message as needed
@@ -54,8 +54,7 @@ def giannis_link():
 
 def update_db(log):
     endpoint_url = "https://express-hello-world-4sgw.onrender.com/callRouter/logCall"  # Replace with your endpoint URL
-    formatted_time = datetime.datetime.now().strftime("%-I:%M:%S %p")  
-    
+    formatted_time = datetime.datetime.now().strftime("%-I:%M:%S %p")
     
     data = {"message": f"{formatted_time}: Call recieved from {log['from_number']} and forwarded to {log['forwarded_number']} with Hubspot results: {log['lookup_results']}"}  # Adjust the log message as needed
 
