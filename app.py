@@ -53,7 +53,7 @@ def giannis_link():
 
 
 def update_db(log):
-    endpoint_url = "https://express-hello-world-4sgw.onrender.com/callRouter/getLogs"  # Replace with your endpoint URL
+    endpoint_url = "https://express-hello-world-4sgw.onrender.com/callRouter/logCall"  # Replace with your endpoint URL
     formatted_time = datetime.datetime.now().strftime("%-I:%M:%S %p")  
     
     
@@ -137,7 +137,10 @@ def handle_call():
     response.dial(to_number, caller_id=from_number)
     log["forwarded_number"] = to_number
     print(f"log: \n {log}")
-    update_db(log)
+    try:
+        update_db(log)
+    except Exception as e:
+        print("Error updating database", e)
     return str(response)
 
 @app.route("/test-hubspot-lookup")
