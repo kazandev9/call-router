@@ -98,9 +98,9 @@ def call_routing_logic(from_number, log):
 
 @app.route("/callRouter", methods=["POST"])
 def handle_call():
-    print(request.form)
-    #print(f"call recieved from {request.form.get('From')}")
-    
+    #print(request.form)
+    print(f"call recieved from {request.form.get('From')}")
+    #tracking_number = request.form.get('ForwardedFrom')
     from_number = request.form.get("From")
     log = {
         "from_number": from_number,
