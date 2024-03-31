@@ -5,6 +5,7 @@ from lookup import lookup
 import time
 import requests
 from datetime import datetime, timezone, timedelta
+import os
 
 app = Flask(__name__)
 
@@ -21,7 +22,7 @@ def root_page():
 
 @app.route("/data")
 def get_data():
-  # Sample data dictionary
+# Sample data dictionary
 	data = {
 		"message": "this is sample data",
 		"number": 34,
@@ -38,11 +39,9 @@ def giannis_link():
 
 def update_db(log):
     endpoint_url = "https://express-hello-world-4sgw.onrender.com/callRouter/logCall"  # Replace with your endpoint URL
-    formatted_time = datetime.now(timezone.utc).astimezone(timezone(offset=-timedelta(hours=5))).strftime("%-I:%M:%S %p")
-    
-    data = {"message": f"{formatted_time}: Call recieved from {log['from_number']} and forwarded to {log['forwarded_number']} with Hubspot results: {log['lookup_results']}"}  # Adjust the log message as needed
-
-    response = requests.post(endpoint_url, json=data)
+    log["timestamp"] = datetime.now(timezone.utc).astimezone(timezone(offset=-timedelta(hours=5))).strftime("%-I:%M:%S %p")
+    #data = {"message": f"{formatted_time}: Call recieved from {log['from_number']} and forwarded to {log['forwarded_number']} with Hubspot results: {log['lookup_results']}"}  # Adjust the log message as needed
+    response = requests.post(endpoint_url, json={'message': log})
 
     if response.status_code == 200:
         print("Log message added successfully!")
@@ -53,7 +52,7 @@ def update_db(log):
 def call_routing_logic(from_number, log):
     try:
         lookup_results = lookup(from_number).get_right_contact()
-        print(lookup_results)
+        #print(lookup_results)
     except Exception as e:
         print(f'error searching for {from_number}, returning default value')
         log['lookup_results'] = "Error searching for contact"
@@ -99,14 +98,16 @@ def call_routing_logic(from_number, log):
 
 @app.route("/callRouter", methods=["POST"])
 def handle_call():
-    #print(request.form)
-    print(f"call recieved from {request.form.get('From')}")
+    print(request.form)
+    #print(f"call recieved from {request.form.get('From')}")
     
     from_number = request.form.get("From")
     log = {
         "from_number": from_number,
         "lookup_results": "",
-        "forwarded_number": ""
+        "forwarded_number": "",
+        "timestamp": "",
+        "hubspot_search": f"https://app.hubspot.com/contacts/{os.environ.get('HUBSPOT_ID')}/objects/0-1/views/all/list?query={from_number[2:]}"
     }
     try:
         to_number = call_routing_logic(from_number, log)
@@ -114,12 +115,9 @@ def handle_call():
         print(f"Error occurred during call routing logic function: {e}")
         to_number = default_number
     response = VoiceResponse()
-    #response.say("Hello, you made it this far, well done!")
-    #response.hangup()
     print(f"forwarding call to {to_number}")
     response.dial(to_number, caller_id=from_number)
     log["forwarded_number"] = to_number
-    print(f"log: \n {log}")
     try:
         update_db(log)
     except Exception as e:
@@ -128,8 +126,14 @@ def handle_call():
 
 @app.route("/test-hubspot-lookup")
 def hubspot_lookup_test():
-    ret = get_props_from_number("+14146072404")
-    return jsonify(ret)
+    phone_number = request.args.get("phone_number")
+    if phone_number is None:
+        return jsonify({"error": "Missing phone number query parameter"}), 400
+    elif phone_number[0:2] != "+1" or "-" in phone_number:
+        jsonify({"error": "phone number is in invalid format, please format your number as such: if number is 123-456-7890, then format number as: +11234567890"}), 400
+    else:
+        ret = get_props_from_number(phone_number)
+        return jsonify(ret)
 
 @app.route("/testWebhook", methods=["POST"])
 def test_hook():
@@ -143,5 +147,3 @@ def test_hook():
     print(f"operations completed in {end - start} seconds")
     return "", 200
 
-
-    
