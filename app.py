@@ -49,6 +49,8 @@ def update_db(log):
         print("Error adding log message. Status code:", response.status_code)
         print("Response content:", response.text)
 
+#needs refractoring: this function is doing waaaaayyy too much
+#should refractor but it works and as the saying goes: if it aint broke, dont fix it :)
 def call_routing_logic(from_number, log):
     try:
         lookup_results = lookup(from_number).get_right_contact()
@@ -82,7 +84,7 @@ def call_routing_logic(from_number, log):
             return "414-395-4513"
         elif "128" in case_type:
             print("active case found with chapter 128 Bankruptcy")
-            return "414-395-4511"
+            return "414-446-3570"
         else:
             print("active case found with conflicting case type (this should be rare)")
             return "414-395-4513"
@@ -135,15 +137,21 @@ def hubspot_lookup_test():
         ret = get_props_from_number(phone_number)
         return jsonify(ret)
 
+"""
 @app.route("/testWebhook", methods=["POST"])
 def test_hook():
-    start = time.time()
-    data = request.get_json()
-    name = data['customer_name']
-    number = data['customer_phone_number']
-    print(f"call recieved from {name} at number {number} with the following routing logic results:")
-    print(f"Number would be forwarded to {call_routing_logic(number)}")
-    end = time.time()
-    print(f"operations completed in {end - start} seconds")
-    return "", 200
+    from_number = request.form.get("From")
+    lookup_results = lookup(from_number).get_right_contact()
+    tracking_number = request.form.get("ForwardedFrom")
+    #response = VoiceResponse()
+    try:
+        to_number = router(lookup_results, tracking_number).route_call()
+    except Exception as e:
+        to_number = router(lookup_results, tracking_number).default_number
+    
+    try:
+        logger(lookup_results=lookup_results, from_number=from_number, to_number=to_number).update_db()
+    except Exception as e:
+        print("error updating database", e)
+""" 
 

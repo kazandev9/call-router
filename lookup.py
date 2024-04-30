@@ -16,7 +16,6 @@ class lookup:
             "fifth": self.fifth_format(),
         }
         
-        
     #go through lookup results and determine which one is right
     #ideally, most should be none, but its not always consistent
     def get_right_contact(self):
