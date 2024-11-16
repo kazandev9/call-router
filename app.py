@@ -78,13 +78,13 @@ def call_routing_logic(from_number, log):
         print("contact found with active case")
         if "13" in case_type:
             print("active case found with chapter 13 Bankruptcy")
-            return "414-395-4525"
+            return "414-316-3555"
         elif "7" in case_type:
             print("active case found with chapter 7 Bankruptcy")
-            return "414-930-3831"
+            return "414-316-3555"
         elif "128" in case_type:
             print("active case found with chapter 128 Bankruptcy")
-            return "414-446-3570"
+            return "414-316-4513"
         else:
             print("active case found with conflicting case type (this should be rare)")
             return "414-395-4513"
